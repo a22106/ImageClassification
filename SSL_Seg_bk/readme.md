@@ -27,3 +27,9 @@ conda install imgaug
 
 - albumentations
 pip install -U albumentations
+
+
+
+- pillow
+python3 -m pip install --upgrade pip
+python3 -m pip install --upgrade Pillow
