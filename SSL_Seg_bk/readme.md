@@ -17,19 +17,26 @@ conda create -n (env-name) python=3.9
 
 ### utils
 - pandas, opencv, imgaug, albumentations
+
 pip install pandas
+
 pip install numpy
+
 pip install opencv-python
 
 - imgaug
 conda config --add channels conda-forge
+
 conda install imgaug
 
 - albumentations
+
 pip install -U albumentations
 
 
 
 - pillow
+
 python3 -m pip install --upgrade pip
+
 python3 -m pip install --upgrade Pillow
