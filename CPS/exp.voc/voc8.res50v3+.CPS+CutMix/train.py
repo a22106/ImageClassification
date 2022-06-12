@@ -15,7 +15,7 @@ import torch.nn.functional as F
 import torch.distributed as dist
 import torch.backends.cudnn as cudnn
 
-from baseline.modules.datasets import *
+from furnace.baseline.modules.datasets import *
 from config import config
 from dataloader import get_train_loader
 from network import Network
