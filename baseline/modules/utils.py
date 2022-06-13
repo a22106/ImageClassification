@@ -37,10 +37,10 @@ def save_json(path, obj, sort_keys=True):
             
             json.dump(obj, f, indent=4, sort_keys=sort_keys)
         
-        msg = f"Json saved {path}"
+        msg = "Json saved {}".format(path)
     
     except Exception as e:
-        msg = f"Fail to save {e}"
+        msg = "Fail to save {}".format(e)
 
     return msg
 
@@ -60,7 +60,7 @@ def save_yaml(path, obj):
 
 def load_yaml(path):
 
-	with open(path, 'r') as f:
+	with open(path, 'r', encoding='utf-8') as f:
 		return yaml.load(f, Loader=yaml.FullLoader)
 
 
@@ -74,7 +74,7 @@ def get_logger(name: str, dir_: str, stream=False):
     
     formatter = logging.Formatter('%(asctime)s | %(name)s | %(levelname)s | %(message)s')
     stream_handler = logging.StreamHandler()
-    file_handler = logging.FileHandler(os.path.join(dir_, f'{name}.log'))
+    file_handler = logging.FileHandler(os.path.join(dir_, '{}.log'.format(name)))
 
     stream_handler.setFormatter(formatter)
     file_handler.setFormatter(formatter)
@@ -148,7 +148,7 @@ def generate_class_mask(pseudo_labels):
 def mask_to_coordinates(mask):
     flatten_mask = mask.flatten()
     if flatten_mask.max() == 0:
-        return f'0 {len(flatten_mask)}'
+        return '0 {}'.format(len(flatten_mask))
     idx = np.where(flatten_mask!=0)[0]
     steps = idx[1:]-idx[:-1]
     new_coord = []
