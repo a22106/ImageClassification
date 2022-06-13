@@ -29,7 +29,7 @@ def load_pickle(path):
         return pickle.load(f)
 
 
-def save_json(path, obj, sort_keys=True)-> str:
+def save_json(path, obj, sort_keys=True):
     
     try:
         
@@ -67,7 +67,7 @@ def load_yaml(path):
 """
 Logger
 """
-def get_logger(name: str, dir_: str, stream=False)-> logging.RootLogger:
+def get_logger(name: str, dir_: str, stream=False):
 
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)  # logging all levels

@@ -74,7 +74,7 @@ class Recorder():
             msg = f"Write row {row_dict['epoch_index']}"
             self.logger.info(msg) if self.logger else None
 
-    def save_weight(self, epoch: int)-> None:
+    def save_weight(self, epoch: int):
         """Weight 저장
             amp 추가
         Args:

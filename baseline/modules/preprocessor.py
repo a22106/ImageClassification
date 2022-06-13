@@ -93,7 +93,7 @@ def global_stadardize_positive(image):
     return standardized_image
 
 
-def normalize_image(image: np.ndarray, max_pixel_value:int = 255)->np.ndarray:
+def normalize_image(image: np.ndarray, max_pixel_value:int = 255):
     """Normalize image by pixel
     """
     normalized_image = image / max_pixel_value
@@ -101,7 +101,7 @@ def normalize_image(image: np.ndarray, max_pixel_value:int = 255)->np.ndarray:
     return normalized_image
 
 
-def normalize_histogram(image: np.ndarray)-> np.ndarray:
+def normalize_histogram(image: np.ndarray):
     """Normalize histogram
     """
     lab_image = cv2.cvtColor(image, cv2.COLOR_RGB2LAB)
@@ -110,7 +110,7 @@ def normalize_histogram(image: np.ndarray)-> np.ndarray:
     return histogram_normalized_image
 
 
-def equalize_histogram(image: np.ndarray)->np.ndarray:
+def equalize_histogram(image: np.ndarray):
     """Equalize histogram
     """
     lab_image = cv2.cvtColor(image, cv2.COLOR_RGB2LAB)
@@ -119,7 +119,7 @@ def equalize_histogram(image: np.ndarray)->np.ndarray:
     return equalized_histogram_image
 
 
-def adaptive_equalize_histogram(image: np.ndarray)->np.ndarray:
+def adaptive_equalize_histogram(image: np.ndarray):
     """Apply CLAHE equalize histogram
     """
     lab_image = cv2.cvtColor(image, cv2.COLOR_RGB2LAB)
