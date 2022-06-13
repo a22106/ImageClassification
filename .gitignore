@@ -25883,3 +25883,11 @@ aicompetition/baseline/results/train/20220608_132739/wandb/run-20220608_132745-g
 aicompetition/baseline/results/train/20220608_132739/wandb/run-20220608_132745-gb5l5yne/logs/debug-internal.log
 aicompetition/baseline/results/train/20220608_132739/wandb/run-20220608_132745-gb5l5yne/logs/debug.log
 aicompetition/baseline/results/train/20220608_132739/wandb/run-20220608_132745-gb5l5yne/run-gb5l5yne.wandb
+MNIST/raw/t10k-labels-idx1-ubyte.gz
+MNIST/raw/train-labels-idx1-ubyte.gz
+MNIST/raw/train-labels-idx1-ubyte
+MNIST/raw/train-images-idx3-ubyte.gz
+MNIST/raw/train-images-idx3-ubyte
+MNIST/raw/t10k-labels-idx1-ubyte
+MNIST/raw/t10k-images-idx3-ubyte.gz
+MNIST/raw/t10k-images-idx3-ubyte

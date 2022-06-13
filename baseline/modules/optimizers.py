@@ -3,7 +3,7 @@
 
 import torch.optim as optim
 
-def get_optimizer(optimizer_name: str):
+def get_optimizer(optimizer_name):
 
     if optimizer_name == 'sgd':
 
