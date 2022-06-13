@@ -130,7 +130,7 @@ class Trainer():
 
             # Logging
             if i % self.interval == 0:
-                msg = f"batch: {i}/{train_epoch} loss: {loss.item()}"
+                msg = "batch: {}/{} loss: {}".format(i, train_epoch, loss.item())
                 self.logger.info(msg)
                 
         # Epoch history

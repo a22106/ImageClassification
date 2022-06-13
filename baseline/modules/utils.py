@@ -67,7 +67,7 @@ def load_yaml(path):
 """
 Logger
 """
-def get_logger(name: str, dir_: str, stream=False):
+def get_logger(name, dir_, stream=False):
 
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)  # logging all levels

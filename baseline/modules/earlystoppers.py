@@ -5,7 +5,7 @@ import logging
 class EarlyStopper():
 
 
-    def __init__(self, patience: int, mode:str, logger:logging.RootLogger=None):
+    def __init__(self, patience, mode, logger=None):
         self.patience = patience
         self.mode = mode
         self.logger = logger
@@ -18,7 +18,7 @@ class EarlyStopper():
         msg = f"Initiated ealry stopper, mode: {self.mode}, best score: {self.best_loss}, patience: {self.patience}"
         self.logger.info(msg) if self.logger else None
         
-    def check_early_stopping(self, loss: float):
+    def check_early_stopping(self, loss):
         loss = -loss if self.mode == 'max' else loss  # get max value if mode set to max
 
         if loss > self.best_loss:
