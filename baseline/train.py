@@ -1,6 +1,3 @@
-"""학습 스크립트
-"""
-
 from modules.utils import load_yaml, save_yaml, get_logger
 from modules.earlystoppers import EarlyStopper
 from modules.recorders import Recorder
@@ -108,7 +105,7 @@ if __name__ == '__main__':
                         logger=logger)
 
     # !Wandb
-    if config['LOGGER']['wandb'] == True: ## 사용시 본인 wandb 계정 입력
+    if config['LOGGER']['wandb'] == True:
         wandb_project_serial = 'Semi'
         wandb_username =  '#'
         wandb.init(project=wandb_project_serial, dir=RECORDER_DIR, entity=wandb_username)
