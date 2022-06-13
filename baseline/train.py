@@ -106,8 +106,8 @@ if __name__ == '__main__':
 
     # !Wandb
     if config['LOGGER']['wandb'] == True:
-        wandb_project_serial = 'Semi'
-        wandb_username =  '#'
+        wandb_project_serial = 'Server reco v3p'
+        wandb_username =  'a22106'
         wandb.init(project=wandb_project_serial, dir=RECORDER_DIR, entity=wandb_username)
         wandb.run.name = train_serial
         wandb.config.update(config)
