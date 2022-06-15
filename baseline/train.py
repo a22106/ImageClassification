@@ -1,3 +1,6 @@
+"""학습 스크립트
+"""
+
 from modules.utils import load_yaml, save_yaml, get_logger
 from modules.earlystoppers import EarlyStopper
 from modules.recorders import Recorder
@@ -104,14 +107,14 @@ if __name__ == '__main__':
                         scheduler=scheduler,
                         logger=logger)
 
-    '''# !Wandb
-    if config['LOGGER']['wandb'] == True:
-        wandb_project_serial = 'Server reco v3p'
+    # !Wandb
+    if config['LOGGER']['wandb'] == True: ## 사용시 본인 wandb 계정 입력
+        wandb_project_serial = 'v3p_nadam_classmix'
         wandb_username =  'a22106'
         wandb.init(project=wandb_project_serial, dir=RECORDER_DIR, entity=wandb_username)
         wandb.run.name = train_serial
         wandb.config.update(config)
-        wandb.watch(model)'''
+        wandb.watch(model)
 
     # Save train config
     save_yaml(os.path.join(RECORDER_DIR, 'train_config.yml'), config)
@@ -163,8 +166,8 @@ if __name__ == '__main__':
         recorder.save_plot(config['LOGGER']['plot'])
 
         #!WANDB
-        '''if config['LOGGER']['wandb'] == True:
-            wandb.log(row_dict)'''
+        if config['LOGGER']['wandb'] == True:
+            wandb.log(row_dict)
 
         """
         Early stopper
@@ -179,6 +182,10 @@ if __name__ == '__main__':
         if early_stopper.stop == True:
             logger.info("Eearly stopped, coutner {}/{}".format(early_stopper.patience_counter, config['TRAINER']['early_stopping_patience']))
             
-            '''if config['LOGGER']['wandb'] == True:
+            if config['LOGGER']['wandb'] == True:
                 wandb.log(best_row_dict)
-            break'''
+            break
+        
+        if epoch_index %5 == 0:
+          os.system('zip result.zip /content/baseline/result/train/*')
+          os.system('mv result.zip /content/drive/MyDrive/data')

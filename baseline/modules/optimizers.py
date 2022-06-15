@@ -16,3 +16,7 @@ def get_optimizer(optimizer_name):
     elif optimizer_name == 'adamw':
 
         return optim.AdamW
+
+    elif optimizer_name == 'nadam':
+
+        return optim.NAdam

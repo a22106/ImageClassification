@@ -13,71 +13,76 @@ import os
 # --------------------------------------------------------------------------------
 # Define data augmentation
 # --------------------------------------------------------------------------------
-def transform(image, label=None, logits=None, crop_size=(512, 512), scale_size=(0.8, 1.0), augmentation=True):
+def transform(image, label=None, logits=None, crop_size=[0.8, 0.8], scale_size=(0.8, 1.0), augmentation=True) :
+    image = transforms_f.resize(image, (500, 500), Image.BILINEAR)
+    if label is not None :
+        label = transforms_f.resize(label, (500, 500), Image.NEAREST)
+    if logits is not None :
+        logits = transforms_f.resize(logits, (500, 500), Image.NEAREST)
     # Random rescale image
     raw_w, raw_h = image.size
-    scale_ratio = random.uniform(scale_size[0], scale_size[1])
-
+    scale_ratio = random.uniform(scale_size[0], scale_size[1])  # random scale size (0.8<= i <= 1.0)
     resized_size = (int(raw_h * scale_ratio), int(raw_w * scale_ratio))
-    image = transforms_f.resize(image, resized_size, Image.BILINEAR)
-    if label is not None:
-        label = transforms_f.resize(label, resized_size, Image.NEAREST)
-    if logits is not None:
-        logits = transforms_f.resize(logits, resized_size, Image.NEAREST)
-
     # Add padding if rescaled image size is less than crop size
-    if crop_size == -1:  # use original im size without crop or padding
-        crop_size = (raw_h, raw_w)
-
-    if crop_size[0] > resized_size[0] or crop_size[1] > resized_size[1]:
+    if crop_size == - 1 :
+        crop_size = (raw_h, raw_w)  # use original image size without crop or padding
+    # if crop_size is larger than resized_size : "Apply padding to resized image"
+    if crop_size[0] > resized_size[0] or crop_size[1] > resized_size[1] :
         right_pad, bottom_pad = max(crop_size[1] - resized_size[1], 0), max(crop_size[0] - resized_size[0], 0)
         image = transforms_f.pad(image, padding=(0, 0, right_pad, bottom_pad), padding_mode='reflect')
-        if label is not None:
+        if label is not None :
             label = transforms_f.pad(label, padding=(0, 0, right_pad, bottom_pad), fill=255, padding_mode='constant')
-        if logits is not None:
+        if logits is not None :
             logits = transforms_f.pad(logits, padding=(0, 0, right_pad, bottom_pad), fill=0, padding_mode='constant')
-
     # Random Cropping
     i, j, h, w = transforms.RandomCrop.get_params(image, output_size=crop_size)
     image = transforms_f.crop(image, i, j, h, w)
-    if label is not None:
+    if label is not None :
         label = transforms_f.crop(label, i, j, h, w)
-    if logits is not None:
+    if logits is not None :
         logits = transforms_f.crop(logits, i, j, h, w)
-
-    if augmentation:
+    if augmentation :
+        # Random horizontal flipping
+        if torch.rand(1) > 0.5 :
+            image = transforms_f.hflip(image)
+            if label is not None :
+                label = transforms_f.hflip(label)
+            if logits is not None :
+                logits = transforms_f.hflip(logits)
+        if torch.rand(1) > 0.5 :
+            image = transforms_f.vflip(image)
+            if label is not None :
+                label = transforms_f.vflip(label)
+            if logits is not None :
+                logits = transforms_f.vflip(logits)
+        if torch.rand(1) > 0.5 :
+            image = transforms_f.rotate(image, 90, resample=Image.NEAREST)
+            if label is not None :
+                label = transforms_f.rotate(label, 90, resample=Image.NEAREST)
+            if logits is not None :
+                logits = transforms_f.rotate(logits, 90, resample=Image.NEAREST)
         # Random color jitter
         if torch.rand(1) > 0.2:
             color_transform = transforms.ColorJitter((0.75, 1.25), (0.75, 1.25), (0.75, 1.25), (-0.25, 0.25))  # For PyTorch 1.9/TorchVision 0.10 users
             #color_transform = transforms.ColorJitter.get_params((0.75, 1.25), (0.75, 1.25), (0.75, 1.25), (-0.25, 0.25))
             image = color_transform(image)
-
-        # Random Gaussian filter
-        if torch.rand(1) > 0.5:
+        # Random Gaussian fillter
+        if torch.rand(1) > 0.5 :
             sigma = random.uniform(0.15, 1.15)
             image = image.filter(ImageFilter.GaussianBlur(radius=sigma))
-
-        # Random horizontal flipping
-        if torch.rand(1) > 0.5:
-            image = transforms_f.hflip(image)
-            if label is not None:
-                label = transforms_f.hflip(label)
-            if logits is not None:
-                logits = transforms_f.hflip(logits)
-
     # Transform to tensor
     image = transforms_f.to_tensor(image)
-    if label is not None:
+    if label is not None :
         label = (transforms_f.to_tensor(label) * 255).long()
-        label[label == 255] = -1  # invalid pixels are re-mapped to index -1
-    if logits is not None:
+        label[label == 255] = -1    # invalid pixels are re-mapped to index - 1
+    if logits is not None :
         logits = transforms_f.to_tensor(logits)
-
-    # Apply (ImageNet) normalisation
+    # Apply(ImageNet) normalization
     image = transforms_f.normalize(image, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    if logits is not None:
+    # def transforms return
+    if logits is not None :
         return image, label, logits
-    else:
+    else :
         return image, label
 
 def denormalise(x, imagenet=True):
@@ -130,8 +135,8 @@ def get_harbor_idx(root, train=True, is_label=True ,label_num=15):
             valid_idx = []
             for c in classes:
                 matched_idx = [i for i in image_idx_list if c in i]
-                train_idx.extend(matched_idx[:label_num])
-                valid_idx.extend(matched_idx[label_num:])
+                train_idx.extend(matched_idx[label_num:])
+                valid_idx.extend(matched_idx[:label_num])
             return train_idx, valid_idx
         else:
             image_path = glob(os.path.join(root, 'train', 'unlabeled_images', '*.jpg'))
@@ -188,9 +193,9 @@ class BuildDataLoader:
     def __init__(self, num_labels, dataset_path, batch_size):
         self.data_path = dataset_path
         self.im_size = [513, 513]
-        self.crop_size = [321, 321]
+        self.crop_size = [450, 450]
         self.num_segments = 5
-        self.scale_size = (0.5, 1.5)
+        self.scale_size = (0.9, 0.9)
         self.batch_size = batch_size
         self.train_l_idx, self.valid_l_idx = get_harbor_idx(self.data_path, train=True, is_label=True, label_num=num_labels)
         self.train_u_idx = get_harbor_idx(self.data_path, train=True, is_label=False)

@@ -1,17 +1,17 @@
 DIRECTORY:
-  dataset: ../../data/final_data #개발 경로에 맞게 수정하세요 !
+  dataset: /content/data #개발 경로에 맞게 수정하세요 !
   
 TRAINER :
   model: deeplabv3p
-  optimizer: adamw
+  optimizer: nadam
   learning_rate: 5.0e-4
-  n_epochs: 200
+  n_epochs: 150
   early_stopping_target: val_mIoU
   early_stopping_patience: 10
   early_stopping_mode: max #min
   gpu: 0
   seed: 42
-  apply_aug: cutout
+  apply_aug: classmix
   weak_threshold: 0.7
   strong_threshold: 0.97
   apply_reco: True
@@ -24,7 +24,7 @@ MODEL:
   output_dim: 256
 
 DATALOADER:
-  batch_size: 5
+  batch_size: 6
 
 LOGGER:
   wandb: True
