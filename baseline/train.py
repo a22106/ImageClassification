@@ -17,12 +17,12 @@ import random
 import os
 import copy
 import pandas as pd
-#import argparse
+import argparse
 
 import wandb
 import warnings
 warnings.filterwarnings('ignore')
-'''
+
 def str2bool(v):
     if isinstance(v, bool):
         return v
@@ -36,7 +36,9 @@ def str2bool(v):
 parser = argparse.ArgumentParser(description='Semi-supervised Segmentation for AICompetition')
 parser.add_argument('--is_trained', help='boolean flag', default=False, type=str2bool)
 parser.add_argument('--is_colab', help='boolean flag', default=False, tyep=str2bool)
-'''
+args = parser.parse_args()
+
+
 # Root directory
 PROJECT_DIR = os.path.dirname(__file__)
 GDRIVE_DIR = '/content/drive/MyDrive'
@@ -45,7 +47,7 @@ GDRIVE_DIR = '/content/drive/MyDrive'
 config_path = os.path.join(PROJECT_DIR, 'config', 'train_config.yml')
 config = load_yaml(config_path)
 
-if 'is_trained' in config['TRAINER']:
+if 'is_trained' in config['TRAINER'] or args.is_trained == True:
     if config['TRAINER']['is_trained'] == True:
         pre_config = config
         is_trained = config['TRAINER']['is_trained']
@@ -166,11 +168,11 @@ if __name__ == '__main__':
     n_epochs = config['TRAINER']['n_epochs']
     if is_trained:
         pre_record_csv = pd.read_csv(os.path.join(PROJECT_DIR, 'results', 'train', train_serial, 'record.csv'))
-        pre_epoch = list(pre_record_csv['epoch_index'][-1])
+        pre_epoch = list(pre_record_csv['epoch_index'])[-1]
     else:
         pre_epoch = 0
     
-    for epoch_index in range(pre_epoch, n_epochs):
+    for epoch_index in range(pre_epoch + 1, n_epochs):
 
         # Set Recorder row
         row_dict = dict()
