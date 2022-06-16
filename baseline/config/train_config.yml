@@ -2,6 +2,9 @@ DIRECTORY:
   dataset: ./data #개발 경로에 맞게 수정하세요 !
   
 TRAINER :
+  is_colab: False
+  is_trained: False
+  train_serial: '20220616_190000'
   model: deeplabv3p
   optimizer: adamw
   learning_rate: 5.0e-4

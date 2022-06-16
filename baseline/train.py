@@ -1,4 +1,4 @@
-"""학습 스크립트
+"""Train
 """
 
 from modules.utils import load_yaml, save_yaml, get_logger
@@ -23,17 +23,25 @@ warnings.filterwarnings('ignore')
 
 # Root directory
 PROJECT_DIR = os.path.dirname(__file__)
+GDRIVE_DIR = '/content/drive/MyDrive'
 
 # Load config
 config_path = os.path.join(PROJECT_DIR, 'config', 'train_config.yml')
 config = load_yaml(config_path)
-
-# Train Serial
-kst = timezone(timedelta(hours=9))
-train_serial = datetime.now(tz=kst).strftime("%Y%m%d_%H%M%S")
+if config['TRAINER']['is_trained'] == True:
+    train_serial = config['TRAINER']['train_serial']
+    config = load_yaml(os.path.join(PROJECT_DIR, 'results', 'train', train_serial, 'train_config.yml'))
+else:
+    # Train Serial
+    kst = timezone(timedelta(hours=9))
+    train_serial = datetime.now(tz=kst).strftime("%Y%m%d_%H%M%S")
 
 # Recorder directory
-RECORDER_DIR = os.path.join(PROJECT_DIR, 'results', 'train', train_serial)
+
+if config['TRAINER']['is_colab'] == True:
+    RECORDER_DIR = os.path.join(GDRIVE_DIR, 'results', 'train', train_serial)
+else:
+    RECORDER_DIR = os.path.join(PROJECT_DIR, 'results', 'train', train_serial)
 os.makedirs(RECORDER_DIR, exist_ok=True)
 
 # Data directory
@@ -65,13 +73,23 @@ if __name__ == '__main__':
                                   batch_size=config['DATALOADER']['batch_size'])
     train_l_loader, train_u_loader, valid_l_loader, _ = data_loader.build(supervised=False)
     logger.info("Load data, train (labeled):{} train (unlabeled):{} val:{}".format(len(train_l_loader), len(train_u_loader), len(valid_l_loader)))
-
-    """
-    02. Set model
-    """
-    # Load model
-    model = get_model(model_name=config['TRAINER']['model'],num_classes=config['MODEL']['num_labels'],
-                      output_dim=config['MODEL']['output_dim']).to(device)
+        
+    if config['TRAINER']['is_trained'] == True:
+        '''
+        02.1 load model
+        '''
+        model = get_model(model_name=config['TRAINER']['model'], num_classes=config['MODEL']['num_labels'],
+                        output_dim=config['MODEL']['output_dim']).to(device)
+        checkpoint = torch.load(os.path.join(RECORDER_DIR, 'model.pt'))
+        model.load_state_dict(checkpoint['model'])
+    
+    else:
+        """
+        02. Set model
+        """
+        # Load model
+        model = get_model(model_name=config['TRAINER']['model'],num_classes=config['MODEL']['num_labels'],
+                        output_dim=config['MODEL']['output_dim']).to(device)
     ema = EMA(model, 0.99)  # Mean teacher model
 
     """
