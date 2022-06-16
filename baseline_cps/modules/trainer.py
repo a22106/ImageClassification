@@ -9,6 +9,141 @@ from modules.utils import generate_unsup_data, label_onehot
 from time import time
 import pandas as pd
 from tqdm import tqdm
+import torch.nn.functional as F
+import torch.distributed as dist
+from itertools import cycle
+
+from collections import OrderedDict
+from psmt_base.base_trainer import BaseTrainer
+from psmt_utils.sliding_evaluator import SlidingEval
+from psmt_utils.metrics import eval_metrics, AverageMeter
+
+##############
+#psmt Trainer
+class Trainer_psmt(BaseTrainer):
+    def __init__(self,model, config, sup_loader, unsup_loader, iter_per_epoch,
+                 val_loader, train_logger, wandb_run=None):
+        super(Trainer_psmt, self).__init__(model, config, iter_per_epoch, train_logger)
+        self.sup_loader = sup_loader
+        self.unsup_loader = unsup_loader
+        self.iter_per_epoch = iter_per_epoch
+        self.val_loader = val_loader
+        self.train_logger = train_logger
+        self.num_classes = 5
+        self.log_step = config["TRAINER"].get('log_per_iter', int(np.sqrt(2)))
+
+    def _train_epoch(self, epoch, id):
+        assert id == 1 or id == 2, "Expect ID in 1 or 2"
+        self.model.module.freeze_teachers_parameters()
+        self.model.train()
+        if self.args.ddp:
+            self.sup_loader.sampler.set_epoch(epoch=epoch - 1)
+            self.unsup_loader.sampler.set_epoch(epoch=epoch - 1)
+        dataloader = iter(zip(cycle(self.supervised_loader), self.unsupervised_loader))
+        tbar = range(len(self.unsupervised_loader))
+
+        tbar = tqdm(tbar, ncols=135, leave=True) if self.args.local_rank <= 0 else tbar
+        self._reset_metrics()
+        for batch_idx in tbar:
+            if self.args.local_rank <= 0:
+                self.tensor_board.step_forward(len(self.unsupervised_loader) * (epoch - 1) + batch_idx)
+            if self.mode == "semi":
+                (_, input_l, target_l), (input_ul_wk, input_ul_str, target_ul) = next(dataloader)
+                input_ul_wk, input_ul_str, target_ul = input_ul_wk.cuda(non_blocking=True), \
+                                                       input_ul_str.cuda(non_blocking=True), \
+                                                       target_ul.cuda(non_blocking=True)
+            else:
+                (_, input_l, target_l) = next(dataloader)
+                input_ul_wk, input_ul_str, target_ul = None, None, None
+
+            # strong aug for all the supervised images
+            input_l, target_l = input_l.cuda(non_blocking=True), target_l.cuda(non_blocking=True)
+
+            # predicted unlabeled data
+            if self.mode == "semi":
+                t1_prob, t2_prob = self.predict_with_out_grad(input_ul_wk)
+                if id == 1:
+                    t2_prob = self.assist_mask_calculate(core_predict=t1_prob,
+                                                         assist_predict=t2_prob,
+                                                         topk=7)
+
+                else:
+                    t1_prob = self.assist_mask_calculate(core_predict=t2_prob,
+                                                         assist_predict=t1_prob,
+                                                         topk=7)
+
+                predict_target_ul = self.gamma * t1_prob + (1 - self.gamma) * t2_prob
+            else:
+                predict_target_ul = None
+
+            origin_predict = predict_target_ul.detach().clone()
+
+            if batch_idx == 0 or batch_idx == int(len(self.unsupervised_loader) / 2):
+                if self.args.local_rank <= 0:
+                    self.tensor_board.update_wandb_city_image(images=input_ul_wk,
+                                                              ground_truth=target_ul,
+                                                              teacher_prediction=predict_target_ul)
+
+            input_l, target_l, input_ul_str, predict_target_ul = self.cut_mix(input_l, target_l,
+                                                                              input_ul_str,
+                                                                              predict_target_ul)
+
+            total_loss, cur_losses, outputs = self.model(x_l=input_l, target_l=target_l,
+                                                         x_ul=input_ul_str,
+                                                         target_ul=predict_target_ul,
+                                                         curr_iter=batch_idx, epoch=epoch - 1, id=id,
+                                                         semi_p_th=self.args.semi_p_th,
+                                                         semi_n_th=self.args.semi_n_th)
+            total_loss = total_loss.mean()
+
+            self.optimizer_s.zero_grad()
+            total_loss.backward()
+            self.optimizer_s.step()
+            outputs['unsup_pred'] = origin_predict
+            self._update_losses(cur_losses)
+            self._compute_metrics(outputs, target_l, target_ul,
+                                  sup=True if self.model.module.mode == "supervised" else False)
+
+            _ = self._log_values(cur_losses)
+
+            if self.args.local_rank <= 0:
+                if batch_idx == 0 or batch_idx == int(len(self.unsupervised_loader) / 2):
+                    self.tensor_board.update_table(cur_losses['pass_rate']['entire_prob_boundary'],
+                                                   axis_name={"x": "boundary", "y": "rate"},
+                                                   title="pass_in_each_boundary")
+
+                    self.tensor_board.update_table(cur_losses['pass_rate']['max_prob_boundary'],
+                                                   axis_name={"x": "boundary", "y": "rate"},
+                                                   title="max_prob_in_each_boundary")
+
+                if batch_idx % self.log_step == 0:
+                    for i, opt_group in enumerate(self.optimizer_s.param_groups[:2]):
+                        self.tensor_board.upload_single_info({f"learning_rate_{i}": opt_group['lr']})
+                    self.tensor_board.upload_single_info({"ramp_up": self.model.module.unsup_loss_w.current_rampup})
+
+                tbar.set_description('ID {} T ({}) | Ls {:.3f} Lu {:.3f} Lw {:.3f} m1 {:.3f} m2 {:.3f}|'.format(
+                    id, epoch, self.loss_sup.average, self.loss_unsup.average, self.loss_weakly.average,
+                    self.mIoU_l, self.mIoU_ul))
+
+            if self.args.ddp:
+                dist.barrier()
+
+            del input_l, target_l, input_ul_wk, input_ul_str, target_ul
+            del total_loss, cur_losses, outputs
+
+            self.lr_scheduler_s.step(epoch=epoch - 1)
+
+            with torch.no_grad():
+                if id == 1:
+                    self.update_teachers(teacher_encoder=self.model.module.encoder1,
+                                         teacher_decoder=self.model.module.decoder1)
+                else:
+                    self.update_teachers(teacher_encoder=self.model.module.encoder2,
+                                         teacher_decoder=self.model.module.decoder2)
+                if self.args.ddp:
+                    dist.barrier()
+
+        return
 
 class Trainer():
 
