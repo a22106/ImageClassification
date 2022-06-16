@@ -160,8 +160,7 @@ class Trainer():
 
     def inference(self, test_loader, save_path, sample_submission):
         # batch size of the test loader should be 1
-        #class_map = {0:'ship', 1:'container_truck', 2:'forklift', 3:'reach_stacker'}
-        class_map = {4:'ship', 1:'container_truck', 2:'forklift', 3:'reach_stacker'}
+        class_map = {0:'ship', 1:'container_truck', 2:'forklift', 3:'reach_stacker'}
 
         test_epoch = len(test_loader)
         file_names = []

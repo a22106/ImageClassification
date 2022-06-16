@@ -1,3 +1,0 @@
-2022-06-14 16:50:46,026 | train | INFO | Set Logger c:\Users\Admin\OneDrive\C Documents\GitHub\ImageClassification\baseline_cps\results\train\20220614_165046
-2022-06-14 16:50:46,028 | train | INFO | Load data, train (labeled):200 train (unlabeled):200 val:200
-2022-06-14 16:50:52,694 | train | INFO | Initiated ealry stopper, mode: max, best score: inf, patience: 10
