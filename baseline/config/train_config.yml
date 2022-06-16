@@ -1,9 +1,12 @@
 DIRECTORY:
-  dataset: /content/data #개발 경로에 맞게 수정하세요 !
+  dataset: ./data #개발 경로에 맞게 수정하세요 !
   
 TRAINER :
+  is_colab: False
+  is_trained: False
+  train_serial: '20220616_190000'
   model: deeplabv3p
-  optimizer: nadam
+  optimizer: adamw
   learning_rate: 5.0e-4
   n_epochs: 150
   early_stopping_target: val_mIoU
@@ -24,7 +27,7 @@ MODEL:
   output_dim: 256
 
 DATALOADER:
-  batch_size: 6
+  batch_size: 5
 
 LOGGER:
   wandb: True

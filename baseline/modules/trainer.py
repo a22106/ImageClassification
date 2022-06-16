@@ -160,7 +160,7 @@ class Trainer():
 
     def inference(self, test_loader, save_path, sample_submission):
         # batch size of the test loader should be 1
-        class_map = {4:'ship', 1:'container_truck', 2:'forklift', 3:'reach_stacker'}
+        class_map = {1:'container_truck', 2:'forklift', 3:'reach_stacker', 4:'ship'}
 
         test_epoch = len(test_loader)
         file_names = []
@@ -175,8 +175,8 @@ class Trainer():
                 pred, _ = self.ema.model(test_data)
                 pred_u_large_raw = F.interpolate(pred, size=img_size[0].tolist(), mode='bilinear', align_corners=True)
                 class_num = pred_u_large_raw[0].sum(dim=(1,2))[1:].argmax().item()
-                class_of_image = class_map[class_num]
-                class_mask = (pred_u_large_raw[0][class_num + 1] -  pred_u_large_raw[0][0] > 0).int().cpu().numpy()
+                class_of_image = class_map[class_num+1]
+                class_mask = (pred_u_large_raw[0][class_num+1] -  pred_u_large_raw[0][0] > 0).int().cpu().numpy()
                 coverted_coordinate = mask_to_coordinates(class_mask)
                 file_names.append(filename[0])
                 classes.append(class_of_image)
