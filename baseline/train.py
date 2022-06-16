@@ -17,11 +17,26 @@ import random
 import os
 import copy
 import pandas as pd
+#import argparse
 
 import wandb
 import warnings
 warnings.filterwarnings('ignore')
+'''
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expacted.')
 
+parser = argparse.ArgumentParser(description='Semi-supervised Segmentation for AICompetition')
+parser.add_argument('--is_trained', help='boolean flag', default=False, type=str2bool)
+parser.add_argument('--is_colab', help='boolean flag', default=False, tyep=str2bool)
+'''
 # Root directory
 PROJECT_DIR = os.path.dirname(__file__)
 GDRIVE_DIR = '/content/drive/MyDrive'
@@ -151,7 +166,7 @@ if __name__ == '__main__':
     n_epochs = config['TRAINER']['n_epochs']
     if is_trained:
         pre_record_csv = pd.read_csv(os.path.join(PROJECT_DIR, 'results', 'train', train_serial, 'record.csv'))
-        pre_epoch = list(pre_record_csv['epoch_idx'][-1])
+        pre_epoch = list(pre_record_csv['epoch_index'][-1])
     else:
         pre_epoch = 0
     
@@ -217,6 +232,3 @@ if __name__ == '__main__':
                 wandb.log(best_row_dict)
             break
         
-        if epoch_index %5 == 0:
-          os.system('zip result.zip /content/baseline/result/train/*')
-          os.system('mv result.zip /content/drive/MyDrive/data')
