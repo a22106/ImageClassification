@@ -16,6 +16,7 @@ import numpy as np
 import random
 import os
 import copy
+import pandas as pd
 
 import wandb
 import warnings
@@ -146,8 +147,15 @@ if __name__ == '__main__':
     04. TRAIN
     """
     # Train
+    # set epoch
     n_epochs = config['TRAINER']['n_epochs']
-    for epoch_index in range(n_epochs):
+    if is_trained:
+        pre_record_csv = pd.read_csv(os.path.join(PROJECT_DIR, 'results', 'train', train_serial, 'record.csv'))
+        pre_epoch = list(pre_record_csv['epoch_idx'][-1])
+    else:
+        pre_epoch = 0
+    
+    for epoch_index in range(pre_epoch, n_epochs):
 
         # Set Recorder row
         row_dict = dict()
