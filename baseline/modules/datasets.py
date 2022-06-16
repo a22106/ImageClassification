@@ -128,7 +128,7 @@ def batch_transform(data, label, logits, crop_size, scale_size, apply_augmentati
 def get_harbor_idx(root, train=True, is_label=True ,label_num=15):
     if train:
         if is_label:
-            classes = ['ship', 'container_truck', 'forklift', 'reach_stacker']
+            classes = ['container_truck', 'forklift', 'reach_stacker', 'ship']
             image_path = glob(os.path.join(root, 'train', 'labeled_images', '*.jpg'))
             image_idx_list = list(map(lambda x : x.split('/')[-1].split('.')[0], image_path))
             train_idx = []

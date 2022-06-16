@@ -109,7 +109,7 @@ if __name__ == '__main__':
 
     # !Wandb
     if config['LOGGER']['wandb'] == True: ## 사용시 본인 wandb 계정 입력
-        wandb_project_serial = 'v3p_nadam_classmix'
+        wandb_project_serial = 'v3p_adamw_classmix'
         wandb_username =  'a22106'
         wandb.init(project=wandb_project_serial, dir=RECORDER_DIR, entity=wandb_username)
         wandb.run.name = train_serial
