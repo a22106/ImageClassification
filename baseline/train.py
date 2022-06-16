@@ -28,11 +28,15 @@ GDRIVE_DIR = '/content/drive/MyDrive'
 # Load config
 config_path = os.path.join(PROJECT_DIR, 'config', 'train_config.yml')
 config = load_yaml(config_path)
-if config['TRAINER']['is_trained'] == True:
-    train_serial = config['TRAINER']['train_serial']
-    config = load_yaml(os.path.join(PROJECT_DIR, 'results', 'train', train_serial, 'train_config.yml'))
+
+if 'is_trained' in config['TRAINER']:
+    if config['TRAINER']['is_trained'] == True:
+        is_trained = config['TRAINER']['is_trained']
+        train_serial = config['TRAINER']['train_serial']
+        config = load_yaml(os.path.join(PROJECT_DIR, 'results', 'train', train_serial, 'train_config.yml'))
 else:
     # Train Serial
+    is_trained = False
     kst = timezone(timedelta(hours=9))
     train_serial = datetime.now(tz=kst).strftime("%Y%m%d_%H%M%S")
 
@@ -74,7 +78,7 @@ if __name__ == '__main__':
     train_l_loader, train_u_loader, valid_l_loader, _ = data_loader.build(supervised=False)
     logger.info("Load data, train (labeled):{} train (unlabeled):{} val:{}".format(len(train_l_loader), len(train_u_loader), len(valid_l_loader)))
         
-    if config['TRAINER']['is_trained'] == True:
+    if is_trained == True:
         '''
         02.1 load model
         '''
