@@ -31,6 +31,7 @@ config = load_yaml(config_path)
 
 if 'is_trained' in config['TRAINER']:
     if config['TRAINER']['is_trained'] == True:
+        pre_config = config
         is_trained = config['TRAINER']['is_trained']
         train_serial = config['TRAINER']['train_serial']
         config = load_yaml(os.path.join(PROJECT_DIR, 'results', 'train', train_serial, 'train_config.yml'))
@@ -59,7 +60,7 @@ np.random.seed(config['TRAINER']['seed'])
 random.seed(config['TRAINER']['seed'])
 
 # GPU
-os.environ['CUDA_VISIBLE_DEVICES'] = str(config['TRAINER']['gpu'])
+os.environ['CUDA_VISIBLE_DEVICES'] = str(pre_config['TRAINER']['gpu'])
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 if __name__ == '__main__': 
