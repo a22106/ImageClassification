@@ -37,9 +37,9 @@ else:
     train_serial = datetime.now(tz=kst).strftime("%Y%m%d_%H%M%S")
 
 # Recorder directory
-
-if config['TRAINER']['is_colab'] == True:
-    RECORDER_DIR = os.path.join(GDRIVE_DIR, 'results', 'train', train_serial)
+if config['TRAINER']['is_colab'] is not None:
+    if config['TRAINER']['is_colab'] == True:
+        RECORDER_DIR = os.path.join(GDRIVE_DIR, 'results', 'train', train_serial)
 else:
     RECORDER_DIR = os.path.join(PROJECT_DIR, 'results', 'train', train_serial)
 os.makedirs(RECORDER_DIR, exist_ok=True)
