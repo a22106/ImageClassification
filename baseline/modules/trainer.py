@@ -179,8 +179,12 @@ class Trainer():
                 class_mask = (pred_u_large_raw[0][class_num] -  pred_u_large_raw[0][0] > 0).int().cpu().numpy()
                 coverted_coordinate = mask_to_coordinates(class_mask)
                 file_names.append(filename[0])
-                classes.append(class_of_image)
-                predictions.append(coverted_coordinate)
+                if class_of_image is "":
+                    classes.append('none')
+                    predictions.append("0 1")
+                else:
+                    classes.append(class_of_image)
+                    predictions.append(coverted_coordinate)
 
         submission_df = pd.DataFrame({'file_name':file_names, 'class':classes, 'prediction':predictions})
         submission_df = pd.merge(sample_submission['file_name'], submission_df, left_on='file_name', right_on='file_name', how='left')
