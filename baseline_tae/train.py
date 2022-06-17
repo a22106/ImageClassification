@@ -1,7 +1,7 @@
 """학습 스크립트
 """
 
-from modules.utils import load_yaml, save_yaml, get_logger
+from modules.utils import load_yaml, save_yaml, get_logger, str2bool
 from modules.earlystoppers import EarlyStopper
 from modules.recorders import Recorder
 from modules.datasets import *
@@ -22,7 +22,6 @@ import argparse
 import wandb
 import warnings
 warnings.filterwarnings('ignore')
-
 
 parser = argparse.ArgumentParser(description='Semi-supervised Segmentation for AICompetition')
 parser.add_argument('--is_trained', help='boolean flag', default=False, type=str2bool)
