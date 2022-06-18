@@ -24,8 +24,8 @@ import warnings
 warnings.filterwarnings('ignore')
 
 parser = argparse.ArgumentParser(description='Semi-supervised Segmentation for AICompetition')
-parser.add_argument('--is_trained', help='boolean flag', default=False, type=str2bool)
-parser.add_argument('--is_colab', help='boolean flag', default=False, type=str2bool)
+parser.add_argument('--trained', help='boolean flag', default=False, type=str2bool)
+parser.add_argument('--colab', help='boolean flag', default=False, type=str2bool)
 args = parser.parse_args()
 
 # Root directory

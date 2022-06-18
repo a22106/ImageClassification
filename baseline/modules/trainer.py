@@ -167,10 +167,10 @@ class Trainer():
         classes = []
         predictions = []
         with torch.no_grad():
-            self.ema.model.eval()
-            test_dataset = iter(test_loader)
+            self.ema.model.eval() 
+            test_dataset = iter(test_loader) 
             for i in tqdm(range(test_epoch)):
-                test_data, img_size, filename = test_dataset.next()
+                test_data, img_size, filename = test_dataset.next() # test_data: # b x cn x h x w
                 test_data = test_data.to(self.device)
 
                 pred, _ = self.ema.model(test_data)
