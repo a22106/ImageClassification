@@ -69,7 +69,7 @@ class Trainer():
                 # random scale images first
                 train_u_aug_data, train_u_aug_label, train_u_aug_logits = \
                     batch_transform(train_u_data, pseudo_labels, pseudo_logits,
-                                    self.data_loader.crop_size, self.data_loader.scale_size, apply_augmentation=False)
+                                    self.data_loader.crop_size, self.data_loader.scale_size, apply_augmentation=True)
 
                 # apply mixing strategy: cutout, cutmix or classmix
                 train_u_aug_data, train_u_aug_label, train_u_aug_logits = \
@@ -130,7 +130,7 @@ class Trainer():
 
             # Logging
             if i % self.interval == 0:
-                msg = "batch: {}/{} loss: {}".format(i, train_epoch, loss.item())
+                msg = f"batch: {i}/{train_epoch} loss: {loss.item()}"
                 self.logger.info(msg)
                 
         # Epoch history
@@ -160,7 +160,7 @@ class Trainer():
 
     def inference(self, test_loader, save_path, sample_submission):
         # batch size of the test loader should be 1
-        class_map = {1:'container_truck', 2:'forklift', 3:'reach_stacker', 4:'ship'}
+        class_map = {0:'container_truck', 1:'forklift', 2:'reach_stacker', 3:'ship'}
 
         test_epoch = len(test_loader)
         file_names = []
@@ -172,12 +172,16 @@ class Trainer():
             for i in tqdm(range(test_epoch)):
                 test_data, img_size, filename = test_dataset.next()
                 test_data = test_data.to(self.device)
+
                 pred, _ = self.ema.model(test_data)
                 pred_u_large_raw = F.interpolate(pred, size=img_size[0].tolist(), mode='bilinear', align_corners=True)
+
                 class_num = pred_u_large_raw[0].sum(dim=(1,2))[1:].argmax().item()
-                class_of_image = class_map[class_num+1]
-                class_mask = (pred_u_large_raw[0][class_num+1] -  pred_u_large_raw[0][0] > 0).int().cpu().numpy()
+                class_of_image = class_map[class_num]
+                print(class_num)
+                class_mask = (pred_u_large_raw[0][class_num + 1] -  pred_u_large_raw[0][0] > 0).int().cpu().numpy()
                 coverted_coordinate = mask_to_coordinates(class_mask)
+
                 file_names.append(filename[0])
                 classes.append(class_of_image)
                 predictions.append(coverted_coordinate)

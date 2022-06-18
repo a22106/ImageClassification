@@ -4,7 +4,7 @@
 import numpy as np
 import cv2
 
-def get_preprocessor(processor):
+def get_preprocessor(processor: str):
     
     if processor == 'normalize':
         return normalize_image
@@ -38,7 +38,7 @@ def get_preprocessor(processor):
 
 class CustomStandardize:
     
-    def __init__(self, means, stds):
+    def __init__(self, means: list, stds: list):
         # BGR
         self.means = means
         self.stds = stds
@@ -93,7 +93,7 @@ def global_stadardize_positive(image):
     return standardized_image
 
 
-def normalize_image(image, max_pixel_value = 255):
+def normalize_image(image: np.ndarray, max_pixel_value:int = 255)->np.ndarray:
     """Normalize image by pixel
     """
     normalized_image = image / max_pixel_value
@@ -101,7 +101,7 @@ def normalize_image(image, max_pixel_value = 255):
     return normalized_image
 
 
-def normalize_histogram(image):
+def normalize_histogram(image: np.ndarray)-> np.ndarray:
     """Normalize histogram
     """
     lab_image = cv2.cvtColor(image, cv2.COLOR_RGB2LAB)
@@ -110,7 +110,7 @@ def normalize_histogram(image):
     return histogram_normalized_image
 
 
-def equalize_histogram(image):
+def equalize_histogram(image: np.ndarray)->np.ndarray:
     """Equalize histogram
     """
     lab_image = cv2.cvtColor(image, cv2.COLOR_RGB2LAB)
@@ -119,7 +119,7 @@ def equalize_histogram(image):
     return equalized_histogram_image
 
 
-def adaptive_equalize_histogram(image):
+def adaptive_equalize_histogram(image: np.ndarray)->np.ndarray:
     """Apply CLAHE equalize histogram
     """
     lab_image = cv2.cvtColor(image, cv2.COLOR_RGB2LAB)

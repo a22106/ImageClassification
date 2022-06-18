@@ -1,4 +1,4 @@
-"""Train
+"""학습 스크립트
 """
 
 from modules.utils import load_yaml, save_yaml, get_logger
@@ -16,28 +16,10 @@ import numpy as np
 import random
 import os
 import copy
-import pandas as pd
-import argparse
 
 import wandb
 import warnings
 warnings.filterwarnings('ignore')
-
-def str2bool(v):
-    if isinstance(v, bool):
-        return v
-    if v.lower() in ('yes', 'true', 't', 'y', '1'):
-        return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expacted.')
-
-parser = argparse.ArgumentParser(description='Semi-supervised Segmentation for AICompetition')
-parser.add_argument('--is_trained', help='boolean flag', default=False, type=str2bool)
-parser.add_argument('--is_colab', help='boolean flag', default=False, tyep=str2bool)
-args = parser.parse_args()
-
 
 # Root directory
 PROJECT_DIR = os.path.dirname(__file__)
@@ -47,24 +29,12 @@ GDRIVE_DIR = '/content/drive/MyDrive'
 config_path = os.path.join(PROJECT_DIR, 'config', 'train_config.yml')
 config = load_yaml(config_path)
 
-if 'is_trained' in config['TRAINER'] or args.is_trained == True:
-    if config['TRAINER']['is_trained'] == True:
-        pre_config = config
-        is_trained = config['TRAINER']['is_trained']
-        train_serial = config['TRAINER']['train_serial']
-        config = load_yaml(os.path.join(PROJECT_DIR, 'results', 'train', train_serial, 'train_config.yml'))
-else:
-    # Train Serial
-    is_trained = False
-    kst = timezone(timedelta(hours=9))
-    train_serial = datetime.now(tz=kst).strftime("%Y%m%d_%H%M%S")
+# Train Serial
+kst = timezone(timedelta(hours=9))
+train_serial = datetime.now(tz=kst).strftime("%Y%m%d_%H%M%S")
 
 # Recorder directory
-if 'is_colab' in config['TRAINER']:
-    if config['TRAINER']['is_colab'] == True:
-        RECORDER_DIR = os.path.join(GDRIVE_DIR, 'results', 'train', train_serial)
-else:
-    RECORDER_DIR = os.path.join(PROJECT_DIR, 'results', 'train', train_serial)
+RECORDER_DIR = os.path.join(GDRIVE_DIR, 'results', 'train', train_serial)
 os.makedirs(RECORDER_DIR, exist_ok=True)
 
 # Data directory
@@ -78,7 +48,7 @@ np.random.seed(config['TRAINER']['seed'])
 random.seed(config['TRAINER']['seed'])
 
 # GPU
-os.environ['CUDA_VISIBLE_DEVICES'] = str(pre_config['TRAINER']['gpu'])
+os.environ['CUDA_VISIBLE_DEVICES'] = str(config['TRAINER']['gpu'])
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 if __name__ == '__main__': 
@@ -86,7 +56,7 @@ if __name__ == '__main__':
     00. Set Logger
     """
     logger = get_logger(name='train', dir_=RECORDER_DIR, stream=False)
-    logger.info("Set Logger {}".format(RECORDER_DIR))
+    logger.info(f"Set Logger {RECORDER_DIR}")
 
     """
     01. Load data
@@ -95,24 +65,14 @@ if __name__ == '__main__':
     data_loader = BuildDataLoader(num_labels=config['MODEL']['num_labels'], dataset_path=config['DIRECTORY']['dataset'],
                                   batch_size=config['DATALOADER']['batch_size'])
     train_l_loader, train_u_loader, valid_l_loader, _ = data_loader.build(supervised=False)
-    logger.info("Load data, train (labeled):{} train (unlabeled):{} val:{}".format(len(train_l_loader), len(train_u_loader), len(valid_l_loader)))
-        
-    if is_trained == True:
-        '''
-        02.1 load model
-        '''
-        model = get_model(model_name=config['TRAINER']['model'], num_classes=config['MODEL']['num_labels'],
-                        output_dim=config['MODEL']['output_dim']).to(device)
-        checkpoint = torch.load(os.path.join(RECORDER_DIR, 'model.pt'))
-        model.load_state_dict(checkpoint['model'])
-    
-    else:
-        """
-        02. Set model
-        """
-        # Load model
-        model = get_model(model_name=config['TRAINER']['model'],num_classes=config['MODEL']['num_labels'],
-                        output_dim=config['MODEL']['output_dim']).to(device)
+    logger.info(f"Load data, train (labeled):{len(train_l_loader)} train (unlabeled):{len(train_u_loader)} val:{len(valid_l_loader)}")
+
+    """
+    02. Set model
+    """
+    # Load model
+    model = get_model(model_name=config['TRAINER']['model'],num_classes=config['MODEL']['num_labels'],
+                      output_dim=config['MODEL']['output_dim']).to(device)
     ema = EMA(model, 0.99)  # Mean teacher model
 
     """
@@ -150,7 +110,7 @@ if __name__ == '__main__':
 
     # !Wandb
     if config['LOGGER']['wandb'] == True: ## 사용시 본인 wandb 계정 입력
-        wandb_project_serial = 'v3p_adamw_classmix'
+        wandb_project_serial = 'base_classmix'
         wandb_username =  'a22106'
         wandb.init(project=wandb_project_serial, dir=RECORDER_DIR, entity=wandb_username)
         wandb.run.name = train_serial
@@ -164,15 +124,8 @@ if __name__ == '__main__':
     04. TRAIN
     """
     # Train
-    # set epoch
     n_epochs = config['TRAINER']['n_epochs']
-    if is_trained:
-        pre_record_csv = pd.read_csv(os.path.join(PROJECT_DIR, 'results', 'train', train_serial, 'record.csv'))
-        pre_epoch = list(pre_record_csv['epoch_index'])[-1]
-    else:
-        pre_epoch = 0
-    
-    for epoch_index in range(pre_epoch + 1, n_epochs):
+    for epoch_index in range(n_epochs):
 
         # Set Recorder row
         row_dict = dict()
@@ -182,29 +135,29 @@ if __name__ == '__main__':
         """
         Train
         """
-        print("Train {}/{}".format(epoch_index, n_epochs))
-        logger.info("--Train {}/{}".format(epoch_index, n_epochs))
+        print(f"Train {epoch_index}/{n_epochs}")
+        logger.info(f"--Train {epoch_index}/{n_epochs}")
         trainer.train(train_l_loader=train_l_loader, train_u_loader=train_u_loader)
         
         row_dict['train_loss'] = trainer.loss_mean
         row_dict['train_elapsed_time'] = trainer.elapsed_time 
         
         for metric_str, score in trainer.score_dict.items():
-            row_dict["train_{}".format(metric_str)] = score
+            row_dict[f"train_{metric_str}"] = score
         trainer.clear_history()
         
         """
         Validation
         """
-        print("Val {}/{}".format(epoch_index, n_epochs))
-        logger.info("--Val {}/{}".format(epoch_index, n_epochs))
+        print(f"Val {epoch_index}/{n_epochs}")
+        logger.info(f"--Val {epoch_index}/{n_epochs}")
         trainer.valid(valid_l_loader=valid_l_loader)
         
         row_dict['val_loss'] = trainer.loss_mean
         row_dict['val_elapsed_time'] = trainer.elapsed_time 
         
         for metric_str, score in trainer.score_dict.items():
-            row_dict["val_{}".format(metric_str)] = score
+            row_dict[f"val_{metric_str}"] = score
         trainer.clear_history()
 
         """
@@ -228,9 +181,8 @@ if __name__ == '__main__':
             best_row_dict = copy.deepcopy(row_dict)
         
         if early_stopper.stop == True:
-            logger.info("Eearly stopped, coutner {}/{}".format(early_stopper.patience_counter, config['TRAINER']['early_stopping_patience']))
+            logger.info(f"Eearly stopped, coutner {early_stopper.patience_counter}/{config['TRAINER']['early_stopping_patience']}")
             
             if config['LOGGER']['wandb'] == True:
                 wandb.log(best_row_dict)
             break
-        

@@ -29,7 +29,7 @@ def load_pickle(path):
         return pickle.load(f)
 
 
-def save_json(path, obj, sort_keys=True):
+def save_json(path, obj, sort_keys=True)-> str:
     
     try:
         
@@ -37,10 +37,10 @@ def save_json(path, obj, sort_keys=True):
             
             json.dump(obj, f, indent=4, sort_keys=sort_keys)
         
-        msg = "Json saved {}".format(path)
+        msg = f"Json saved {path}"
     
     except Exception as e:
-        msg = "Fail to save {}".format(e)
+        msg = f"Fail to save {e}"
 
     return msg
 
@@ -60,21 +60,21 @@ def save_yaml(path, obj):
 
 def load_yaml(path):
 
-	with open(path, 'r', encoding='utf-8') as f:
+	with open(path, 'r') as f:
 		return yaml.load(f, Loader=yaml.FullLoader)
 
 
 """
 Logger
 """
-def get_logger(name, dir_, stream=False):
+def get_logger(name: str, dir_: str, stream=False)-> logging.RootLogger:
 
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)  # logging all levels
     
     formatter = logging.Formatter('%(asctime)s | %(name)s | %(levelname)s | %(message)s')
     stream_handler = logging.StreamHandler()
-    file_handler = logging.FileHandler(os.path.join(dir_, '{}.log'.format(name)))
+    file_handler = logging.FileHandler(os.path.join(dir_, f'{name}.log'))
 
     stream_handler.setFormatter(formatter)
     file_handler.setFormatter(formatter)
@@ -148,7 +148,7 @@ def generate_class_mask(pseudo_labels):
 def mask_to_coordinates(mask):
     flatten_mask = mask.flatten()
     if flatten_mask.max() == 0:
-        return '0 {}'.format(len(flatten_mask))
+        return f'0 {len(flatten_mask)}'
     idx = np.where(flatten_mask!=0)[0]
     steps = idx[1:]-idx[:-1]
     new_coord = []

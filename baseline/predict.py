@@ -16,6 +16,7 @@ warnings.filterwarnings('ignore')
 
 # Config
 PROJECT_DIR = os.path.dirname(__file__)
+GDRIVE_DIR = '/content/drive/MyDrive'
 predict_config = load_yaml(os.path.join(PROJECT_DIR, 'config', 'predict_config.yml'))
 
 # Serial
@@ -25,11 +26,12 @@ predict_timestamp = datetime.now(tz=kst).strftime("%Y%m%d_%H%M%S")
 predict_serial = train_serial + '_' + predict_timestamp
 
 # Predict directory
-PREDICT_DIR = os.path.join(PROJECT_DIR, 'results', 'predict', predict_serial)
+PREDICT_DIR = os.path.join(GDRIVE_DIR, 'results', 'predict', predict_serial)
 os.makedirs(PREDICT_DIR, exist_ok=True)
 
 # Train config
-RECORDER_DIR = os.path.join(PROJECT_DIR, 'results', 'train', train_serial)
+#RECORDER_DIR = os.path.join(PROJECT_DIR, 'results', 'train', train_serial)
+RECORDER_DIR = os.path.join(GDRIVE_DIR, 'results', 'train', train_serial)
 train_config = load_yaml(os.path.join(RECORDER_DIR, 'train_config.yml'))
 
 # SEED

@@ -15,11 +15,11 @@ import csv
 class Recorder():
 
     def __init__(self,
-                 record_dir,
-                 model,
-                 optimizer,
-                 scheduler,
-                 logger=None):
+                 record_dir: str,
+                 model: object,
+                 optimizer: object,
+                 scheduler: object,
+                 logger: logging.RootLogger=None):
         """Recorder 초기화
             
         Args:
@@ -39,10 +39,10 @@ class Recorder():
 
         os.makedirs(self.plot_dir, exist_ok=True)
 
-    def set_model(self, model):
+    def set_model(self, model: 'model'):
         self.model = model
 
-    def set_logger(self, logger):
+    def set_logger(self, logger: logging.RootLogger):
         self.logger = logger
 
     def create_record_directory(self):
@@ -54,7 +54,7 @@ class Recorder():
         msg = f"Create directory {self.record_dir}"
         self.logger.info(msg) if self.logger else None
 
-    def add_row(self, row_dict):
+    def add_row(self, row_dict: dict):
         """Epoch 단위 성능 적재
 
         Args:
@@ -74,7 +74,7 @@ class Recorder():
             msg = f"Write row {row_dict['epoch_index']}"
             self.logger.info(msg) if self.logger else None
 
-    def save_weight(self, epoch):
+    def save_weight(self, epoch: int)-> None:
         """Weight 저장
             amp 추가
         Args:
@@ -94,7 +94,7 @@ class Recorder():
         self.logger.info(msg) if self.logger else None
 
     
-    def save_plot(self, plots):
+    def save_plot(self, plots: list):
 
         record_df = pd.read_csv(self.record_filepath)
         current_epoch = record_df['epoch_index'].max()
