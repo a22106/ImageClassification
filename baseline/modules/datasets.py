@@ -73,8 +73,8 @@ def transform(image, label=None, logits=None, crop_size=(512, 512), scale_size=(
                 
         # Random color jitter
         if torch.rand(1) > 0.2:
-            color_transform = transforms.ColorJitter((0.75, 1.25), (0.75, 1.25), (0.75, 1.25), (-0.25, 0.25))  # For PyTorch 1.9/TorchVision 0.10 users
-            #color_transform = transforms.ColorJitter.get_params((0.75, 1.25), (0.75, 1.25), (0.75, 1.25), (-0.25, 0.25))
+            #color_transform = transforms.ColorJitter((0.75, 1.25), (0.75, 1.25), (0.75, 1.25), (-0.25, 0.25))  # For PyTorch 1.9/TorchVision 0.10 users
+            color_transform = transforms.ColorJitter.get_params((0.75, 1.25), (0.75, 1.25), (0.75, 1.25), (-0.25, 0.25))
             image = color_transform(image)
 
 
@@ -143,7 +143,7 @@ def batch_transform(data, label, logits, crop_size, scale_size, apply_augmentati
 def get_harbor_idx(root, train=True, is_label=True ,label_num=15):
     if train:
         if is_label:
-            classes = ['background', 'container_truck', 'forklift', 'reach_stacker','ship']
+            classes = ['container_truck', 'forklift', 'reach_stacker','ship']
             image_path = glob(os.path.join(root, 'train', 'labeled_images', '*.jpg'))
             image_idx_list = list(map(lambda x : x.split('/')[-1].split('.')[0], image_path))
             train_idx = []
