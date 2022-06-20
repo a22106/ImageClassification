@@ -13,12 +13,12 @@ import os
 # --------------------------------------------------------------------------------
 # Define data augmentation
 # --------------------------------------------------------------------------------
-def transform(image, label=None, logits=None, crop_size=(512, 512), scale_size=(0.8, 1.0), augmentation=True) :
-    image = transforms_f.resize(image, (385, 513), Image.BILINEAR)
+def transform(image, label=None, logits=None, crop_size=(511, 511), scale_size=(0.8, 1.0), augmentation=True) :
+    image = transforms_f.resize(image, (870, 870), Image.BILINEAR)
     if label is not None :
-        label = transforms_f.resize(label, (385, 513), Image.NEAREST)
+        label = transforms_f.resize(label, (870, 870), Image.NEAREST)
     if logits is not None :
-        logits = transforms_f.resize(logits, (385, 513), Image.NEAREST)
+        logits = transforms_f.resize(logits, (870, 870), Image.NEAREST)
 
     # Random rescale image
     raw_w, raw_h = image.size
@@ -64,11 +64,15 @@ def transform(image, label=None, logits=None, crop_size=(512, 512), scale_size=(
                 logits = transforms_f.vflip(logits)
 
         if torch.rand(1) > 0.5 :
-            image = transforms_f.rotate(image, 90, resample=Image.NEAREST)
+            if torch.rand(1) > 0.5 :
+                angle_rot = 90
+            else:
+                angle_rot = 270
+            image = transforms_f.rotate(image, angle_rot, resample=Image.NEAREST)
             if label is not None :
-                label = transforms_f.rotate(label, 90, resample=Image.NEAREST)
+                label = transforms_f.rotate(label, angle_rot, resample=Image.NEAREST)
             if logits is not None :
-                logits = transforms_f.rotate(logits, 90, resample=Image.NEAREST)
+                logits = transforms_f.rotate(logits, angle_rot, resample=Image.NEAREST)
 
                 
         # Random color jitter
@@ -81,7 +85,7 @@ def transform(image, label=None, logits=None, crop_size=(512, 512), scale_size=(
         # Random Gaussian fillter
         if torch.rand(1) > 0.5 :
             sigma = random.uniform(0.15, 1.15)
-            image = image.filter(ImageFilter.GaussianBlur(radius=sigma))
+            image = image.filter(ImageFilter.GaussianBlur())
 
     # Transform to tensor
     image = transforms_f.to_tensor(image)
@@ -166,7 +170,7 @@ def get_harbor_idx(root, train=True, is_label=True ,label_num=15):
 # Create dataset in PyTorch format
 # --------------------------------------------------------------------------------
 class BuildDataset(Dataset):
-    def __init__(self, root, idx_list, crop_size=(512, 512), scale_size=(0.5, 2.0),
+    def __init__(self, root, idx_list, crop_size=(512, 512), scale_size=(0.8, 1.0),
                  augmentation=True, train=True, is_label=True):
         self.root = os.path.expanduser(root)
         self.train = train
@@ -207,10 +211,10 @@ class BuildDataset(Dataset):
 class BuildDataLoader:
     def __init__(self, num_labels, dataset_path, batch_size):
         self.data_path = dataset_path
-        self.im_size = [385, 513]
-        self.crop_size = [321, 321]
+        self.im_size = [870, 870]
+        self.crop_size = [511, 511]
         self.num_segments = 5
-        self.scale_size = (0.5, 1.5)
+        self.scale_size = (0.8, 1.0)
         self.batch_size = batch_size
         self.train_l_idx, self.valid_l_idx = get_harbor_idx(self.data_path, train=True, is_label=True, label_num=num_labels)
         self.train_u_idx = get_harbor_idx(self.data_path, train=True, is_label=False)
