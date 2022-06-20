@@ -64,28 +64,24 @@ def transform(image, label=None, logits=None, crop_size=(511, 511), scale_size=(
                 logits = transforms_f.vflip(logits)
 
         if torch.rand(1) > 0.5 :
-            if torch.rand(1) > 0.5 :
-                angle_rot = 90
-            else:
-                angle_rot = 270
-            image = transforms_f.rotate(image, angle_rot, resample=Image.NEAREST)
+            image = transforms_f.rotate(image, 90, resample=Image.NEAREST)
             if label is not None :
-                label = transforms_f.rotate(label, angle_rot, resample=Image.NEAREST)
+                label = transforms_f.rotate(label, 90, resample=Image.NEAREST)
             if logits is not None :
-                logits = transforms_f.rotate(logits, angle_rot, resample=Image.NEAREST)
+                logits = transforms_f.rotate(logits, 90, resample=Image.NEAREST)
 
                 
         # Random color jitter
         if torch.rand(1) > 0.2:
-            #color_transform = transforms.ColorJitter((0.75, 1.25), (0.75, 1.25), (0.75, 1.25), (-0.25, 0.25))  # For PyTorch 1.9/TorchVision 0.10 users
-            color_transform = transforms.ColorJitter.get_params((0.75, 1.25), (0.75, 1.25), (0.75, 1.25), (-0.25, 0.25))
+            color_transform = transforms.ColorJitter((0.75, 1.25), (0.75, 1.25), (0.75, 1.25), (-0.25, 0.25))  # For PyTorch 1.9/TorchVision 0.10 users
+            #color_transform = transforms.ColorJitter.get_params((0.75, 1.25), (0.75, 1.25), (0.75, 1.25), (-0.25, 0.25))
             image = color_transform(image)
 
 
         # Random Gaussian fillter
         if torch.rand(1) > 0.5 :
             sigma = random.uniform(0.15, 1.15)
-            image = image.filter(ImageFilter.GaussianBlur())
+            image = image.filter(ImageFilter.GaussianBlur(radius=sigma))
 
     # Transform to tensor
     image = transforms_f.to_tensor(image)
@@ -147,7 +143,7 @@ def batch_transform(data, label, logits, crop_size, scale_size, apply_augmentati
 def get_harbor_idx(root, train=True, is_label=True ,label_num=15):
     if train:
         if is_label:
-            classes = ['container_truck', 'forklift', 'reach_stacker','ship']
+            classes = ['background', 'container_truck', 'forklift', 'reach_stacker','ship']
             image_path = glob(os.path.join(root, 'train', 'labeled_images', '*.jpg'))
             image_idx_list = list(map(lambda x : x.split('/')[-1].split('.')[0], image_path))
             train_idx = []
@@ -170,7 +166,7 @@ def get_harbor_idx(root, train=True, is_label=True ,label_num=15):
 # Create dataset in PyTorch format
 # --------------------------------------------------------------------------------
 class BuildDataset(Dataset):
-    def __init__(self, root, idx_list, crop_size=(512, 512), scale_size=(0.8, 1.0),
+    def __init__(self, root, idx_list, crop_size=(511, 511), scale_size=(0.5, 2.0),
                  augmentation=True, train=True, is_label=True):
         self.root = os.path.expanduser(root)
         self.train = train
@@ -214,7 +210,7 @@ class BuildDataLoader:
         self.im_size = [870, 870]
         self.crop_size = [511, 511]
         self.num_segments = 5
-        self.scale_size = (0.8, 1.0)
+        self.scale_size = (0.75, 1.25)
         self.batch_size = batch_size
         self.train_l_idx, self.valid_l_idx = get_harbor_idx(self.data_path, train=True, is_label=True, label_num=num_labels)
         self.train_u_idx = get_harbor_idx(self.data_path, train=True, is_label=False)
@@ -287,4 +283,3 @@ def color_map(mask, colormap):
     for i in np.unique(mask):
         color_mask[mask == i] = colormap[i]
     return np.uint8(color_mask)
-

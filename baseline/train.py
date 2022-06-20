@@ -1,7 +1,7 @@
 """학습 스크립트
 """
 
-from modules.utils import load_yaml, save_yaml, get_logger
+from modules.utils import load_yaml, save_yaml, get_logger, str2bool
 from modules.earlystoppers import EarlyStopper
 from modules.recorders import Recorder
 from modules.datasets import *
@@ -16,10 +16,17 @@ import numpy as np
 import random
 import os
 import copy
+import pandas as pd
+import argparse
 
 import wandb
 import warnings
 warnings.filterwarnings('ignore')
+
+parser = argparse.ArgumentParser(description='Semi-supervised Segmentation for AICompetition')
+parser.add_argument('--trained', help='boolean flag, true, 1, y, false, 0, n', default=False, type=str2bool)
+parser.add_argument('--colab', help='boolean flag: true, 1, y, false, 0, n', default=False, type=str2bool)
+args = parser.parse_args()
 
 # Root directory
 PROJECT_DIR = os.path.dirname(__file__)
@@ -34,7 +41,10 @@ kst = timezone(timedelta(hours=9))
 train_serial = datetime.now(tz=kst).strftime("%Y%m%d_%H%M%S")
 
 # Recorder directory
-RECORDER_DIR = os.path.join(GDRIVE_DIR, 'results', 'train', train_serial)
+if args.colab == False:
+    RECORDER_DIR = os.path.join(PROJECT_DIR, 'results', 'train', train_serial)
+elif args.colab == True:
+    RECORDER_DIR = os.path.join(GDRIVE_DIR, 'results', 'train', train_serial)
 os.makedirs(RECORDER_DIR, exist_ok=True)
 
 # Data directory
