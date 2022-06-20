@@ -60,10 +60,10 @@ class Trainer():
             self.optimizer.zero_grad()
 
             # generate pseudo-labels
-            with torch.no_grad():
-                pred_u, _ = self.ema.model(train_u_data)
+            with torch.no_grad(): # image size 511 
+                pred_u, _ = self.ema.model(train_u_data) 
                 pred_u_large_raw = F.interpolate(pred_u, size=train_u_data.shape[2:], mode='bilinear',
-                                                 align_corners=True)
+                                                 align_corners=True) # upsampling train_u size(512)
                 pseudo_logits, pseudo_labels = torch.max(torch.softmax(pred_u_large_raw, dim=1), dim=1)
 
                 # random scale images first
@@ -81,10 +81,10 @@ class Trainer():
                                     self.data_loader.crop_size, (1.0, 1.0), apply_augmentation=True)
 
             # generate labelled and unlabelled data loss
-            pred_l, rep_l = self.model(train_l_data)
+            pred_l, rep_l = self.model(train_l_data) # pred_l b x class x 128 x 128
             pred_l_large = F.interpolate(pred_l, size=train_l_label.shape[1:], mode='bilinear', align_corners=True)
 
-            pred_u, rep_u = self.model(train_u_aug_data)
+            pred_u, rep_u = self.model(train_u_aug_data) # pred_u b x class x 128 x 128
             pred_u_large = F.interpolate(pred_u, size=train_l_label.shape[1:], mode='bilinear', align_corners=True)
 
             rep_all = torch.cat((rep_l, rep_u))

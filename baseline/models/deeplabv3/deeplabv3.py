@@ -15,10 +15,10 @@ class DeepLabv3Plus(nn.Module):
             aspp_dilate = [6, 12, 18]
 
         # take pre-defined ResNet, except AvgPool and FC
-        self.resnet_conv1 = orig_resnet.conv1
-        self.resnet_bn1 = orig_resnet.bn1
+        self.resnet_conv1 = orig_resnet.conv1 # 3, 64, 7x7, st=2, pad=3
+        self.resnet_bn1 = orig_resnet.bn1 # nn.batnorm2d(64)
         self.resnet_relu1 = orig_resnet.relu
-        self.resnet_maxpool = orig_resnet.maxpool
+        self.resnet_maxpool = orig_resnet.maxpool # 3x3, st=2, pad=1
 
         self.resnet_layer1 = orig_resnet.layer1
         self.resnet_layer2 = orig_resnet.layer2
@@ -65,8 +65,11 @@ class DeepLabv3Plus(nn.Module):
 
     def forward(self, x):
         # with ResNet-50 Encoder
+        # if input b x 3 x 511 x 511
+        # 3, 64, 7x7, st=2, pad=3
+        # conv1->bn->relu->maxpool 
         x = self.resnet_relu1(self.resnet_bn1(self.resnet_conv1(x)))
-        x = self.resnet_maxpool(x)
+        x = self.resnet_maxpool(x) # 3x3, 2, 1 | output: b x 64 x 128 x 128
 
         x_low = self.resnet_layer1(x)
         x = self.resnet_layer2(x_low)
@@ -78,6 +81,6 @@ class DeepLabv3Plus(nn.Module):
         # Decoder
         x_low = self.project(x_low)
         output_feature = F.interpolate(feature, size=x_low.shape[2:], mode='bilinear', align_corners=True)
-        prediction = self.classifier(torch.cat([x_low, output_feature], dim=1))
-        representation = self.representation(torch.cat([x_low, output_feature], dim=1))
+        prediction = self.classifier(torch.cat([x_low, output_feature], dim=1)) # 5 x 5 x 128 x 128
+        representation = self.representation(torch.cat([x_low, output_feature], dim=1)) # 5 x 256 x 128 x 128
         return prediction, representation
