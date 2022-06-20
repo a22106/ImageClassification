@@ -3,7 +3,7 @@ from functools import partial
 
 
 class DeepLabv3Plus(nn.Module):
-    def __init__(self, orig_resnet, dilate_scale=16, num_classes=5, output_dim=256):
+    def __init__(self, orig_resnet, dilate_scale=16, num_classes=5, output_dim=256): # torchvision.models.resnet101(pretrained=True)
         super(DeepLabv3Plus, self).__init__()
         if dilate_scale == 8:
             orig_resnet.layer3.apply(partial(self._nostride_dilate, dilate=2))

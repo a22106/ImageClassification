@@ -60,7 +60,7 @@ def save_yaml(path, obj):
 
 def load_yaml(path):
 
-	with open(path, 'r') as f:
+	with open(path, 'r', encoding='utf-8') as f:
 		return yaml.load(f, Loader=yaml.FullLoader)
 
 
