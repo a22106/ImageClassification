@@ -1,4 +1,0 @@
-import json
-dic = {
-    "name":
-}
